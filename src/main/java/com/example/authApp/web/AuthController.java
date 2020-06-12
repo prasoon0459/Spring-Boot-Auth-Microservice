@@ -24,7 +24,6 @@ import com.example.authApp.domain.User;
 import com.example.authApp.repo.UserRepository;
 import com.example.authApp.security.JwtProperties;
 import com.example.authApp.security.JwtTokenProvider;
-import com.example.authApp.web.AuthRequest;
 	
 
 @RestController
@@ -95,16 +94,15 @@ public class AuthController {
     public ResponseEntity refresh(@RequestBody RefreshRequest data) {
 		Map<Object, Object> model = new HashMap<>();
 		String refreshToken=data.getRefresh_token();
-		String newRefeshToken, newAccessToken;
+		String newAccessToken;
 		model.put("timestamp",new Date());
 		User user=usersRepo.findByUsername(jwtTokenProvider.getUsernamefromRefresh(refreshToken)).get();
 		if(jwtTokenProvider.validateRefreshToken(refreshToken)) {
     		newAccessToken=jwtTokenProvider.createToken(user);
-    		newRefeshToken=jwtTokenProvider.createRefreshToken(user);
             model.put("status",201);
             model.put("error", false);
             model.put("access_token",newAccessToken);
-            model.put("refresh_token",newRefeshToken);
+            model.put("refresh_token",refreshToken);
             
     	}
     	else {
