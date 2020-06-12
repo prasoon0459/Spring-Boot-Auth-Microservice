@@ -53,8 +53,15 @@ public class AuthController {
             String username = data.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
             User user=usersRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username " + username + "not found"));
-            String token = jwtTokenProvider.createToken(user);
-            String refreshToken= jwtTokenProvider.createRefreshToken(user);
+            
+            String token,refreshToken;
+            if(user.isValid()){
+            	token = jwtTokenProvider.createToken(user);
+                refreshToken= jwtTokenProvider.createRefreshToken(user);
+            }
+            else {
+				throw new BadCredentialsException("Account blocked by admin");
+			}
             
             Map<Object, Object> model = new HashMap<>();
             model.put("timestamp",new Date());
@@ -97,22 +104,28 @@ public class AuthController {
 		String newAccessToken;
 		model.put("timestamp",new Date());
 		User user=usersRepo.findByUsername(jwtTokenProvider.getUsernamefromRefresh(refreshToken)).get();
-		if(jwtTokenProvider.validateRefreshToken(refreshToken)) {
-    		newAccessToken=jwtTokenProvider.createToken(user);
-            model.put("status",201);
-            model.put("error", false);
-            model.put("access_token",newAccessToken);
-            model.put("refresh_token",refreshToken);
-            
-    	}
-    	else {
-    		model.put("status",403);
-            model.put("error", "Bad Request");
-            model.put("message", "Refresh token is invalid or expired");
-    	}
-    
-        model.put("path","auth/refresh");
-        return ok(model);
+		if(user.isValid()) {
+			if(jwtTokenProvider.validateRefreshToken(refreshToken)) {
+	    		newAccessToken=jwtTokenProvider.createToken(user);
+	            model.put("status",201);
+	            model.put("error", false);
+	            model.put("access_token",newAccessToken);
+	            model.put("refresh_token",refreshToken);
+	            
+	    	}
+	    	else {
+	    		model.put("status",403);
+	            model.put("error", "Bad Request");
+	            model.put("message", "Refresh token is invalid or expired");
+	    	}
+	    
+	        model.put("path","auth/refresh");
+	        return ok(model);
+		}
+		else {
+			throw new BadCredentialsException("Account blocked by admin");
+		}
+		
     }
 }
 
