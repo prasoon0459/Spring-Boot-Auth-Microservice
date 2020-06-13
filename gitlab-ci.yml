@@ -21,6 +21,6 @@ maven-build:
 docker-build:
   stage: package
   script:
-  - docker build -t registry.gitlab.com/aayush21/admin .
+  - docker build -t registry.gitlab.com/prasoon0459/auth .
   - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-  - docker push registry.gitlab.com/aayush21/admin
+  - docker push registry.gitlab.com/prasoon0459/auth
